@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Live Stream Pro | Kaveen Chamodya</title>
+    
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@videojs/themes@1.0.1/city/index.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #00f2fe;
+            --secondary-color: #4facfe;
+            --bg-dark: #000;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-color: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.2);
+            --footer-text: rgba(255, 255, 255, 0.6);
+        }
+
+        [data-theme="light"] {
+            --bg-dark: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #1a1a1a;
+            --border-color: #d1d1d1;
+            --footer-text: #555555;
+        }
+
+        body {
+            background: var(--bg-dark) !important;
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+            margin: 0; padding: 0; 
+            width: 100vw; height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.4s ease;
+        }
+
+        .vjs-loading-spinner {
+            border: none !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            width: auto !important;
+            height: auto !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            animation: none !important;
+        }
+
+        .vjs-loading-spinner::before {
+            content: "Starting..." !important;
+            animation: vjs-spinner-fade 1.5s linear infinite !important;
+            font-family: 'Poppins', sans-serif !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            color: var(--primary-color) !important;
+        }
+
+        .vjs-loading-spinner::after { display: none !important; }
+
+        @keyframes vjs-spinner-fade {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        .theme-toggle {
+            display: none;
+            position: fixed;
+            top: 15px; right: 15px; 
+            z-index: 9999;
+            background: var(--card-bg); 
+            color: var(--text-color);
+            border: 1px solid var(--border-color); 
+            padding: 4px 12px;
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-size: 10px; 
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10000;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .webgl { position: absolute; top: 0; left: 0; outline: none; z-index: 1; }
+
+        .loader-content {
+            position: absolute; bottom: 10%; z-index: 2;
+            text-align: center; width: 100%;
+        }
+
+        .loading-text {
+            font-size: 0.7rem; font-weight: 500; letter-spacing: 3px;
+            background: linear-gradient(to right, #00f2fe, #4facfe);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .main-wrapper {
+            width: 100%; 
+            max-width: 1000px; 
+            margin: 0 auto;
+            display: none; 
+            flex-direction: column; 
+            gap: 15px;
+            padding: 15px; 
+            box-sizing: border-box;
+            min-height: 100vh;
+        }
+
+        .player-section {
+            background: var(--card-bg); backdrop-filter: blur(20px);
+            padding: 10px; border-radius: 15px; border: 1px solid var(--border-color);
+            width: 100%; box-sizing: border-box;
+        }
+
+        .video-js { width: 100%; height: auto; aspect-ratio: 16/9; border-radius: 10px; }
+
+        .search-container { position: sticky; top: 0; z-index: 100; padding: 10px 0; background: inherit; }
+
+        .search-input {
+            width: 100%; padding: 10px 20px; border-radius: 30px;
+            border: 1px solid var(--border-color); background: var(--card-bg); 
+            color: var(--text-color); font-size: 12px; outline: none; box-sizing: border-box;
+        }
+
+        .channel-grid {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); 
+            gap: 10px; 
+            margin-bottom: 20px;
+        }
+
+        .channel-card {
+            background: var(--card-bg); padding: 10px 5px;
+            text-align: center; border-radius: 10px; cursor: pointer;
+            transition: 0.3s; border: 1px solid var(--border-color);
+            font-size: 11px; font-weight: 500; color: var(--text-color);
+            display: flex; align-items: center; justify-content: center; min-height: 45px;
+        }
+
+        .channel-card:hover, .channel-card.active {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: #000; font-weight: 700;
+        }
+
+        h3 {
+            color: var(--primary-color); border-left: 3px solid var(--primary-color);
+            padding-left: 10px; margin: 15px 0 10px; font-size: 12px; text-transform: uppercase;
+        }
+
+        /* ඔබ දුන් මුල්ම Footer Style එක ආපහු දැම්මා */
+        .footer-note {
+            text-align: center; 
+            padding: 20px 10px; 
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+        }
+        .footer-note p {
+            font-size: 9px; 
+            color: var(--footer-text);
+            margin: 2px 0;
+            letter-spacing: 0.5px;
+        }
+        .footer-note b {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .channel-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">☀️ LIGHT MODE</button>
+
+    <div id="loader">
+        <canvas class="webgl"></canvas>
+        <div class="loader-content">
+            <div class="loading-text" id="status-text">CONNECTING TO GALAXY...</div>
+        </div>
+    </div>
+
+    <div class="main-wrapper" id="player-ui">
+        <div class="player-section">
+            <video id="my-video" class="video-js vjs-theme-city vjs-big-play-centered" controls preload="auto">
+                <p class="vjs-no-js">JavaScript required.</p>
+            </video>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="channelSearch" class="search-input" placeholder="Search Channels..." onkeyup="filterChannels()">
+        </div>
+
+        <div class="channel-container">
+            <div id="featured-section">
+                <h3 id="feat-head">Featured Channels</h3>
+                <div class="channel-grid">
+                    <div class="channel-card active" onclick="playChannel(this, 'https://tvsen3.aynaott.com/u3LkNQ7UHhFX/index.m3u8')">Colors Bangla</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://imranapk.site/TG@RANAPKX73x/TOXF/play.php?id=ten_cricket')">Ten Cricket</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://live-en.aisports.cc/moviebox/device01/playlist.m3u8')">🔒 Jio Hotstar</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://amg01269-amg01269c1-sportstribal-emea-5204.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg01269-willowtvfast-willowplus-sportstribalemea/playlist.m3u8')">Willow Cricket HD</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://tvsen1.aynaott.com/YNMn5kZz8aLm/tracks-v1a1/mono.ts.m3u8')">T Sports HD</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://tplay.live/playlist/kids/motu-patlu/index.m3u8')">Motu Patlu</div>
+                </div>
+            </div>
+
+            <div id="sl-section">
+                <h3 id="sl-head">Sri Lankan Channels</h3>
+                <div class="channel-grid">
+                    <div class="channel-card" onclick="playChannel(this, 'https://stream.asiatvnet.com/1/live/master.m3u8')">Asia TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge4-moblive.yuppcdn.net/trans1sd/smil:nettv15.smil/playlist.m3u8')">Channel Eye</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/transhd2/smil:chtv05.smil/index.m3u8')">Charana TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8')">Hiru TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge4-moblive.yuppcdn.net/transsd/smil:itn43.smil/playlist.m3u8')">ITN</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/drm/smil:jayamagatvdrm.smil/index.m3u8')">Jaya TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://jk3lz8xklw79-hls-live.5centscdn.com/lpl/d0dbe915091d400bd8ee7f27f0791303.sdp/playlist.m3u8')">Monara TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://g4wlkqqwl23a-hls-live.5centscdn.com/NDTVLANKA/1ff5fa54d14c3ff6c6bd3918bbb7db5d.sdp/playlist.m3u8')">NDTV Lanka</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/transsd/smil:chii02.smil/playlist.m3u8?dvr=')">Nethra TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge2-moblive.yuppcdn.net/transsd/smil:runi01.smil/playlist.m3u8?dvr')">Rupavahini</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge4-moblive.yuppcdn.net/transsd/smil:saktv10.smil/playlist.m3u8?dvr=')">Shakthi TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/drm1/smil:shraddhatvdrm.smil/index.m3u8')">Shraddha TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge2-moblive.yuppcdn.net/transsd/smil:sirtv09.smil/playlist.m3u8?dvr=')">Sirasa TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://rtmp01.voaplus.com/hls/6x6ik312qk4grfxocfcv.m3u8')">Siyatha TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge4-moblive.yuppcdn.net/trans1sd/smil:strtml19.smil/playlist.m3u8?dvr=')">Star Tamil</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://jk3lz8xklw79-hls-live.5centscdn.com/live/6226f7cbe59e99a90b5cef6f94f966fd.sdp/playlist.m3u8')">Swarnavahini (1)</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge1-moblive.yuppcdn.net/drm/smil:swarnawahinidrm.smil/manifest.m3u8')">Swarnavahini (2)</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/drm1/smil:thebuddhistdrm.smil/index.m3u8')">The Buddhist</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/transsd/smil:tnl12.smil/playlist.m3u8?dvr=')">TNL TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge4-moblive.yuppcdn.net/trans1sd/smil:tv111.smil/playlist.m3u8')">TV 1</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/transhd2/smil:detv04.smil/index.m3u8')">TV Derana</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/trans1sd/smil:vatv07.smil/playlist.m3u8?dvr=')">Vasantham TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/drm1/smil:verbumtvdrm.smil/index.m3u8')">Verbum TV</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://edge1-moblive.yuppcdn.net/drm/smil:peosports1drm.smil/index.m3u8')">Peo Sport SD</div>
+                </div>
+            </div>
+
+            <h3 id="play-head">Playlist Channels</h3> 
+            <div class="channel-grid" id="playlist-channels"></div>
+        </div>
+
+        <footer class="footer-note">
+            <p>&copy; 2025 All Rights Reserved</p>
+            <p>Designed & Powered By <b>Kaveen Chamodya</b></p>
+        </footer>
+    </div>
+
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('themeBtn');
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                btn.innerText = "🌙 DARK MODE";
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                btn.innerText = "☀️ LIGHT MODE";
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from "https://cdn.skypack.dev/three@0.132.2";
+
+        const canvas = document.querySelector('canvas.webgl');
+        const scene = new THREE.Scene();
+        
+        const parameters = { 
+            count: 20000, 
+            size: 0.015, 
+            radius: 4.5, 
+            branches: 3, 
+            spin: 3, 
+            randomness: 0.5, 
+            randomnessPower: 4, 
+            insideColor: '#ff6030', 
+            outsideColor: '#0949f0' 
+        };
+        
+        let geometry = null, material = null, points = null;
+        
+        const generateGalaxy = () => {
+            if(points !== null) { geometry.dispose(); material.dispose(); scene.remove(points); }
+            geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(parameters.count * 3);
+            const colors = new Float32Array(parameters.count * 3);
+            const colorInside = new THREE.Color(parameters.insideColor);
+            const colorOutside = new THREE.Color(parameters.outsideColor);
+            for(let i = 0; i < parameters.count; i++) {
+                const i3 = i * 3;
+                const radius = Math.random() * parameters.radius;
+                const spinAngle = radius * parameters.spin;
+                const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2;
+                const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * parameters.randomness * radius;
+                const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * parameters.randomness * radius;
+                const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : -1) * parameters.randomness * radius;
+                positions[i3] = Math.cos(branchAngle + spinAngle) * radius + randomX;
+                positions[i3 + 1] = randomY;
+                positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ;
+                const mixedColor = colorInside.clone().lerp(colorOutside, radius / parameters.radius);
+                colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            material = new THREE.PointsMaterial({ size: parameters.size, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true });
+            points = new THREE.Points(geometry, material); scene.add(points);
+        };
+        
+        generateGalaxy();
+        
+        const sizes = { width: window.innerWidth, height: window.innerHeight };
+        const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
+        camera.position.set(0, 4.5, 6); camera.lookAt(0, 0, 0); scene.add(camera);
+
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: canvas,
+            antialias: false,
+            powerPreference: "high-performance"
+        });
+        renderer.setSize(sizes.width, sizes.height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const clock = new THREE.Clock();
+        let animationId = null;
+
+        const tick = () => {
+            const elapsedTime = clock.getElapsedTime();
+            if(points) points.rotation.y = elapsedTime * 0.05; 
+            renderer.render(scene, camera);
+            animationId = window.requestAnimationFrame(tick);
+        };
+        tick();
+
+        var player = videojs('my-video', { fluid: true });
+        const m3uUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
+
+        window.playChannel = function(element, url) {
+            document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            let type = (url.includes('.m3u8') || url.includes('.ts')) ? 'application/x-mpegURL' : 'video/mp4';
+            player.src({ src: url, type: type });
+            player.play().catch(e => {});
+        }
+
+        window.filterChannels = function() {
+            let input = document.getElementById('channelSearch').value.toLowerCase();
+            let cards = document.getElementsByClassName('channel-card');
+            for (let i = 0; i < cards.length; i++) {
+                let name = cards[i].innerText.toLowerCase();
+                cards[i].style.display = name.includes(input) ? "flex" : "none";
+            }
+        }
+
+        async function fetchPlaylist() {
+            try {
+                const response = await fetch(m3uUrl);
+                const data = await response.text();
+                setTimeout(() => {
+                    document.getElementById('status-text').innerText = "SYSTEM ONLINE !!";
+                    setTimeout(() => {
+                        parseM3U(data);
+                        const loader = document.getElementById('loader');
+                        loader.style.opacity = '0';
+                        setTimeout(() => {
+                            loader.style.display = 'none';
+                            window.cancelAnimationFrame(animationId);
+                            document.getElementById('player-ui').style.display = 'flex';
+                            document.getElementById('themeBtn').style.display = 'block';
+                        }, 800);
+                    }, 1000);
+                }, 2500); 
+            } catch (error) {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('player-ui').style.display = 'flex';
+            }
+        }
+
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            const container = document.getElementById('playlist-channels');
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('#EXTINF')) {
+                    let name = lines[i].split(',')[1]?.trim() || "Unknown Channel";
+                    
+                    // මුල් අකුරු කැපිටල් කිරීමට JavaScript
+                    name = name.toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+                    
+                    let url = lines[i+1]?.trim();
+                    if (url && url.startsWith('http')) {
+                        const card = document.createElement('div');
+                        card.className = 'channel-card';
+                        card.innerText = name;
+                        card.onclick = function() { playChannel(this, url); };
+                        container.appendChild(card);
+                    }
+                }
+            }
+        }
+        player.src({ src: 'https://tvsen3.aynaott.com/u3LkNQ7UHhFX/index.m3u8', type: 'application/x-mpegURL' });
+        fetchPlaylist();
+    </script>
+</body>
+</html>
