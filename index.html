@@ -156,7 +156,6 @@
             padding-left: 10px; margin: 15px 0 10px; font-size: 12px; text-transform: uppercase;
         }
 
-        /* ඔබ දුන් මුල්ම Footer Style එක ආපහු දැම්මා */
         .footer-note {
             text-align: center; 
             padding: 20px 10px; 
@@ -223,7 +222,6 @@
                     <div class="channel-card" onclick="playChannel(this, 'https://tv.hiruhost.com:1936/8012/8012/playlist.m3u8')">Hiru TV</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://edge4-moblive.yuppcdn.net/transsd/smil:itn43.smil/playlist.m3u8')">ITN</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/drm/smil:jayamagatvdrm.smil/index.m3u8')">Jaya TV</div>
-                    <div class="channel-card" onclick="playChannel(this, 'https://jk3lz8xklw79-hls-live.5centscdn.com/lpl/d0dbe915091d400bd8ee7f27f0791303.sdp/playlist.m3u8')">Monara TV</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://g4wlkqqwl23a-hls-live.5centscdn.com/NDTVLANKA/1ff5fa54d14c3ff6c6bd3918bbb7db5d.sdp/playlist.m3u8')">NDTV Lanka</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://edge3-moblive.yuppcdn.net/transsd/smil:chii02.smil/playlist.m3u8?dvr=')">Nethra TV</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://edge2-moblive.yuppcdn.net/transsd/smil:runi01.smil/playlist.m3u8?dvr')">Rupavahini</div>
@@ -341,7 +339,18 @@
         };
         tick();
 
-        var player = videojs('my-video', { fluid: true });
+        // රිවයින්ඩ් පහසුකම සියලු චැනල් සඳහා මෙහිදී සක්‍රීය කර ඇත
+        var player = videojs('my-video', { 
+            fluid: true,
+            liveui: true, 
+            controlBar: {
+                skipButtons: {
+                    forward: 10,
+                    backward: 10 
+                }
+            }
+        });
+
         const m3uUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
 
         window.playChannel = function(element, url) {
@@ -392,7 +401,6 @@
                 if (lines[i].startsWith('#EXTINF')) {
                     let name = lines[i].split(',')[1]?.trim() || "Unknown Channel";
                     
-                    // මුල් අකුරු කැපිටල් කිරීමට JavaScript
                     name = name.toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
                     
                     let url = lines[i+1]?.trim();
