@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
     <title>Live Stream Pro | Kaveen Chamodya</title>
     
     <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
@@ -354,15 +355,22 @@
             }
         });
 
-        const m3uUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
-        const m3uUrl2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u');
+        const corsProxy = 'https://api.allorigins.win/raw?url=';
 
         window.playChannel = function(element, url) {
             document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
             element.classList.add('active');
+            
+            let finalUrl = url;
+            
             let type = (url.includes('.m3u8') || url.includes('.ts')) ? 'application/x-mpegURL' : 'video/mp4';
-            player.src({ src: url, type: type });
-            player.play().catch(e => {});
+            player.src({ src: finalUrl, type: type });
+            
+            player.play().catch(e => {
+                console.log("Retrying with Proxy...");
+                player.src({ src: corsProxy + encodeURIComponent(url), type: type });
+                player.play();
+            });
         }
 
         window.filterChannels = function() {
@@ -374,16 +382,20 @@
             }
         }
 
+        const m3uUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
+        const m3uUrl2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u');
+
         async function fetchAllPlaylists() {
             try {
-                // Fetch first playlist
-                const res1 = await fetch(m3uUrl1);
-                const data1 = await res1.text();
-                parseM3U(data1, 'playlist-channels');
+                const [res1, res2] = await Promise.all([
+                    fetch(m3uUrl1),
+                    fetch(m3uUrl2)
+                ]);
 
-                // Fetch second playlist
-                const res2 = await fetch(m3uUrl2);
+                const data1 = await res1.text();
                 const data2 = await res2.text();
+
+                parseM3U(data1, 'playlist-channels');
                 parseM3U(data2, 'second-playlist-channels');
 
                 setTimeout(() => {
@@ -398,8 +410,9 @@
                             document.getElementById('themeBtn').style.display = 'block';
                         }, 800);
                     }, 1000);
-                }, 2500); 
+                }, 1500); 
             } catch (error) {
+                console.error("Fetch Error:", error);
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('player-ui').style.display = 'flex';
             }
@@ -411,7 +424,9 @@
             for (let i = 0; i < lines.length; i++) {
                 if (lines[i].startsWith('#EXTINF')) {
                     let name = lines[i].split(',')[1]?.trim() || "Unknown Channel";
+                    // චැනල් නාමයේ මුල් අකුරු කැපිටල් කිරීම සහ Hd -> HD ලෙස නිවැරදි කිරීම
                     name = name.toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+                    name = name.replace(/\bHd\b/g, 'HD').replace(/\bSd\b/g, 'SD');
                     
                     let url = lines[i+1]?.trim();
                     if (url && url.startsWith('http')) {
