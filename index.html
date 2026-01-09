@@ -382,7 +382,8 @@
             }
         }
 
-        const m3uUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
+        // --- මෙතන මම අලුත් ප්ලේලිස්ට් එක ඇතුළත් කළා ---
+        const m3uUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/AqSLwj.m3u');
         const m3uUrl2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u');
 
         async function fetchAllPlaylists() {
@@ -424,7 +425,6 @@
             for (let i = 0; i < lines.length; i++) {
                 if (lines[i].startsWith('#EXTINF')) {
                     let name = lines[i].split(',')[1]?.trim() || "Unknown Channel";
-                    // චැනල් නාමයේ මුල් අකුරු කැපිටල් කිරීම සහ Hd -> HD ලෙස නිවැරදි කිරීම
                     name = name.toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
                     name = name.replace(/\bHd\b/g, 'HD').replace(/\bSd\b/g, 'SD');
                     
