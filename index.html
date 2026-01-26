@@ -208,7 +208,7 @@
                     <div class="channel-card active" onclick="playChannel(this, 'https://tvsen3.aynaott.com/u3LkNQ7UHhFX/index.m3u8')">Colors Bangla</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://imranapk.site/TG@RANAPKX73x/TOXF/play.php?id=ten_cricket')">Ten Cricket</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://live-en.aisports.cc/moviebox/device01/playlist.m3u8')">🔒 Jio Hotstar</div>
-                    <div class="channel-card" onclick="playChannel(this, 'https://amg01269-amg01269c1-sportstribal-emea-5204.playouts.now.amagi.tv/ts-eu-w1-n2/playlist/amg01269-willowtvfast-willowplus-sportstribalemea/playlist.m3u8')">Willow Cricket HD</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://portal2m3u.cr7x.workers.dev/t=eyJwb3J0YWwiOiJodHRwOi8vbmV3LmRpdHRvdHZ2LmNjIiwibWFjIjoiMDA6MUE6Nzk6MDA6MkU6MkUiLCJzbiI6IjIzNUJERTBFQjVCNzIiLCJkZXZpY2UiOiI5REEwQTZENzdEMzU4OTA0QzY2QUIyMTMxMzdCQUEwQTM1Mzc4NkUxN0FEN0M4Mzc2NkQ5MjM1RTVFN0ExQzM3In0=/290.m3u')">Star Sports 1 HD</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://tvsen1.aynaott.com/YNMn5kZz8aLm/tracks-v1a1/mono.ts.m3u8')">T Sports HD</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://tplay.live/playlist/kids/motu-patlu/index.m3u8')">Motu Patlu</div>
                 </div>
@@ -247,9 +247,7 @@
             <h3 id="play-head">Playlist Channels</h3> 
             <div class="channel-grid" id="playlist-channels"></div>
 
-            <h3 id="second-play-head">Second Playlist Channels</h3> 
-            <div class="channel-grid" id="second-playlist-channels"></div>
-        </div>
+            </div>
 
         <footer class="footer-note">
             <p>&copy; 2025 All Rights Reserved</p>
@@ -362,7 +360,6 @@
             element.classList.add('active');
             
             let finalUrl = url;
-            
             let type = (url.includes('.m3u8') || url.includes('.ts')) ? 'application/x-mpegURL' : 'video/mp4';
             player.src({ src: finalUrl, type: type });
             
@@ -382,22 +379,14 @@
             }
         }
 
-        // --- මෙතන මම අලුත් ප්ලේලිස්ට් එක ඇතුළත් කළා ---
+        // --- එක් ප්ලේලිස්ට් එකක් පමණක් Fetch කිරීම ---
         const m3uUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
-        const m3uUrl2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u');
 
         async function fetchAllPlaylists() {
             try {
-                const [res1, res2] = await Promise.all([
-                    fetch(m3uUrl1),
-                    fetch(m3uUrl2)
-                ]);
-
+                const res1 = await fetch(m3uUrl1);
                 const data1 = await res1.text();
-                const data2 = await res2.text();
-
                 parseM3U(data1, 'playlist-channels');
-                parseM3U(data2, 'second-playlist-channels');
 
                 setTimeout(() => {
                     document.getElementById('status-text').innerText = "SYSTEM ONLINE !!";
