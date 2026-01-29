@@ -209,7 +209,7 @@
                     <div class="channel-card" onclick="playChannel(this, 'https://imranapk.site/TG@RANAPKX73x/TOXF/play.php?id=ten_cricket')">Ten Cricket</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://live-en.aisports.cc/moviebox/device01/playlist.m3u8')">🔒 Jio Hotstar</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://portal2m3u.cr7x.workers.dev/t=eyJwb3J0YWwiOiJodHRwOi8vbmV3LmRpdHRvdHZ2LmNjIiwibWFjIjoiMDA6MUE6Nzk6MDA6MkU6MkUiLCJzbiI6IjIzNUJERTBFQjVCNzIiLCJkZXZpY2UiOiI5REEwQTZENzdEMzU4OTA0QzY2QUIyMTMxMzdCQUEwQTM1Mzc4NkUxN0FEN0M4Mzc2NkQ5MjM1RTVFN0ExQzM3In0=/290.m3u')">Star Sports 1 HD</div>
-                    <div class="channel-card" onclick="playChannel(this, 'https://tvsen1.aynaott.com/YNMn5kZz8aLm/tracks-v1a1/mono.ts.m3u8')">T Sports HD</div>
+                    <div class="channel-card" onclick="playChannel(this, 'https://live20.bozztv.com/giatv/giatv-tsports/tsports/chunks.m3u8')">T Sports HD</div>
                     <div class="channel-card" onclick="playChannel(this, 'https://tplay.live/playlist/kids/motu-patlu/index.m3u8')">Motu Patlu</div>
                 </div>
             </div>
@@ -355,16 +355,43 @@
 
         const corsProxy = 'https://api.allorigins.win/raw?url=';
 
+        // --- Ads Setup ---
+        const adLinks = [
+            "https://www.effectivegatecpm.com/egf7t1zp51?key=34fa75486a98f09945c34ac7e2d6d21f",
+            "https://www.effectivegatecpm.com/mc1ik70d1?key=b581f0aa7fcc6efe7980fb239818dbba",
+            "https://www.effectivegatecpm.com/catp6hxc?key=cdc419bda1c1eb2b33e06fc7cd1ffd74",
+            "https://www.effectivegatecpm.com/gzdt4huw9e?key=dfc124f9ac3df1aacb231383657ec1cc",
+            "https://www.effectivegatecpm.com/dg3qvhzd?key=fff4b6a1bac1515ce8745b83683308fd"
+        ];
+
+        // --- Ad-Blocker Detection ---
+        let isAdBlockerActive = false;
+        async function checkAdBlock() {
+            try {
+                await fetch(new Request("https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js", { mode: 'no-cors' }));
+                isAdBlockerActive = false;
+            } catch (e) {
+                isAdBlockerActive = true;
+            }
+        }
+        checkAdBlock();
+
         window.playChannel = function(element, url) {
+            if (isAdBlockerActive) {
+                alert("Ad-Blocker detected! Please disable it to play the channel.");
+                return;
+            }
+
+            const randomAd = adLinks[Math.floor(Math.random() * adLinks.length)];
+            window.open(randomAd, '_blank');
+
             document.querySelectorAll('.channel-card').forEach(c => c.classList.remove('active'));
             element.classList.add('active');
             
-            let finalUrl = url;
             let type = (url.includes('.m3u8') || url.includes('.ts')) ? 'application/x-mpegURL' : 'video/mp4';
-            player.src({ src: finalUrl, type: type });
+            player.src({ src: url, type: type });
             
             player.play().catch(e => {
-                console.log("Retrying with Proxy...");
                 player.src({ src: corsProxy + encodeURIComponent(url), type: type });
                 player.play();
             });
@@ -379,7 +406,6 @@
             }
         }
 
-        // --- එක් ප්ලේලිස්ට් එකක් පමණක් Fetch කිරීම ---
         const m3uUrl1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://is.gd/YJ307U');
 
         async function fetchAllPlaylists() {
@@ -402,7 +428,6 @@
                     }, 1000);
                 }, 1500); 
             } catch (error) {
-                console.error("Fetch Error:", error);
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('player-ui').style.display = 'flex';
             }
@@ -416,7 +441,6 @@
                     let name = lines[i].split(',')[1]?.trim() || "Unknown Channel";
                     name = name.toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
                     name = name.replace(/\bHd\b/g, 'HD').replace(/\bSd\b/g, 'SD');
-                    
                     let url = lines[i+1]?.trim();
                     if (url && url.startsWith('http')) {
                         const card = document.createElement('div');
